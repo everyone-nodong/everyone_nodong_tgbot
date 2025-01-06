@@ -13,79 +13,69 @@ bot.
 
 import logging
 import os
-from typing import Optional
 
 import dotenv
-
-from telegram import ChatMember, ChatMemberUpdated, Update
+from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
-    ChatMemberHandler,
     ContextTypes,
+    MessageHandler,
+    filters,
 )
 
+WELCOME_MULTIPLE_USER_PREFIX_FORMAT = """
+안녕하세요!
+""".strip()
+
+WELCOME_SINGLE_USER_PREFIX_FORMAT = """
+안녕하세요 [{member_name}](tg://user?id={member_id}) 님,
+""".strip()
+
 WELCOME_MESSAGE_FORMAT = """
-{member_name}님, 전국민주일반노조 채팅방에 오신것을 환영합니다!\n조합비 납부 방법, 계좌번호 등 자주 묻는 질문은 홈페이지 참조 바랍니다.\nhttps://everyone-nodong.github.io/\n또한 최근 소식은 채팅방 상단 고정된 메시지 확인 부탁드립니다.",
+전국민주일반노조 채팅방에 오신것을 환영합니다!\n조합비 납부 방법, 계좌번호 등 자주 묻는 질문은 홈페이지 참조 바랍니다.\nhttps://everyone-nodong.github.io/\n최근 소식은 채팅방 상단 고정된 메시지에서 확인하실 수 있습니다.
 """.strip()
 
 # Enable logging
-
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
+# set higher logging level for httpx to avoid all GET and POST requests being logged
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 logger = logging.getLogger(__name__)
 
 
-def extract_status_change(chat_member_update: ChatMemberUpdated) -> Optional[tuple[bool, bool]]:
-    """Takes a ChatMemberUpdated instance and extracts whether the 'old_chat_member' was a member
-    of the chat and whether the 'new_chat_member' is a member of the chat. Returns None, if
-    the status didn't change.
-    """
-    status_change = chat_member_update.difference().get("status")
-    old_is_member, new_is_member = chat_member_update.difference().get("is_member", (None, None))
 
-    if status_change is None:
-        return None
+async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Echo the user message."""
 
-    old_status, new_status = status_change
-    was_member = old_status in [
-        ChatMember.MEMBER,
-        ChatMember.OWNER,
-        ChatMember.ADMINISTRATOR,
-    ] or (old_status == ChatMember.RESTRICTED and old_is_member is True)
-    is_member = new_status in [
-        ChatMember.MEMBER,
-        ChatMember.OWNER,
-        ChatMember.ADMINISTRATOR,
-    ] or (new_status == ChatMember.RESTRICTED and new_is_member is True)
+    prefix = WELCOME_MULTIPLE_USER_PREFIX_FORMAT
 
-    return was_member, is_member
+    if len(update.message.new_chat_members) == 1:
+        user = update.message.new_chat_members[0]
+        prefix = WELCOME_SINGLE_USER_PREFIX_FORMAT.format(member_name=user.name, member_id=user.id)
 
-async def greet_chat_members(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Greets new users in chats and announces when someone leaves"""
-    result = extract_status_change(update.chat_member)
-    if result is None:
-        return
-
-    was_member, is_member = result
-    member_name = update.chat_member.new_chat_member.user.mention_html()
-
-    if not was_member and is_member:
-        await update.effective_chat.send_message(
-            WELCOME_MESSAGE_FORMAT.format(member_name=member_name),
-            disable_notification=True,
-            parse_mode=ParseMode.HTML,
-        )
+    await update.effective_chat.send_message(
+        text=prefix + ' ' + WELCOME_MESSAGE_FORMAT,
+        parse_mode=ParseMode.MARKDOWN,
+        disable_notification=True,
+    )
 
 
 def main() -> None:
-    dotenv.load_dotenv('.env.local')
     """Start the bot."""
+    dotenv.load_dotenv('.env.local')
+
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(os.getenv('TG_TOKEN')).build()
-    application.add_handler(ChatMemberHandler(greet_chat_members, ChatMemberHandler.CHAT_MEMBER))
+
+    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, echo))
+
+    # Run the bot until the user presses Ctrl-C
+    # We pass 'allowed_updates' handle *all* updates including `chat_member` updates
+    # To reset this, simply pass `allowed_updates=[]`
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 

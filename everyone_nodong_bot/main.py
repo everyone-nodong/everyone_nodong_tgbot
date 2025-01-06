@@ -14,6 +14,8 @@ bot.
 import logging
 import os
 
+from datetime import datetime
+
 import dotenv
 from telegram import Update
 from telegram.constants import ParseMode
@@ -23,6 +25,19 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+
+
+GREET_DEBOUNCE_TERM = 60
+
+
+class State:
+    last_dt: datetime
+
+    def __init__(self):
+        self.last_dt = datetime.now()
+
+
+state = State()
 
 WELCOME_MULTIPLE_USER_PREFIX_FORMAT = """
 안녕하세요!
@@ -48,8 +63,13 @@ logger = logging.getLogger(__name__)
 
 
 
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Echo the user message."""
+async def greet_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    now = datetime.now()
+
+    if (now - state.last_dt).total_seconds() < 60:
+        return
+
+    state.last_dt = now
 
     prefix = WELCOME_MULTIPLE_USER_PREFIX_FORMAT
 
@@ -71,7 +91,7 @@ def main() -> None:
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(os.getenv('TG_TOKEN')).build()
 
-    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, echo))
+    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_message))
 
     # Run the bot until the user presses Ctrl-C
     # We pass 'allowed_updates' handle *all* updates including `chat_member` updates

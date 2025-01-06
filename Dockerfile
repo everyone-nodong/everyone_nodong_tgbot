@@ -1,8 +1,6 @@
 FROM python:3.13
 
-RUN apt update
-RUN apt install -y pipx
-RUN pipx install poetry==2.0.0
+RUN curl -sSL https://install.python-poetry.org | python -
 
 ENV PATH="/root/.local/bin:$PATH"
 

@@ -33,6 +33,7 @@ class State:
 
     def __init__(self):
         self.message_count = GREET_DEBOUNCE_MESSAGE_COUNT+1
+        self.last_message = None
 
 
 state = State()

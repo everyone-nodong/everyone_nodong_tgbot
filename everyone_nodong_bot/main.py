@@ -14,10 +14,8 @@ bot.
 import logging
 import os
 
-from datetime import datetime
-
 import dotenv
-from telegram import Update
+from telegram import Update, Message
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
@@ -31,6 +29,7 @@ GREET_DEBOUNCE_MESSAGE_COUNT = 10
 
 class State:
     message_count: int
+    last_message: Message | None
 
     def __init__(self):
         self.message_count = GREET_DEBOUNCE_MESSAGE_COUNT+1
@@ -68,7 +67,13 @@ async def greet_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     state.message_count = 0
 
-    await update.effective_chat.send_message(
+    if not update.effective_chat:
+        return
+
+    if state.last_message:
+        await state.last_message.delete()
+
+    state.last_message = await update.effective_chat.send_message(
         text=WELCOME_MESSAGE_FORMAT,
         parse_mode=ParseMode.MARKDOWN,
         disable_notification=True,
@@ -80,7 +85,7 @@ def main() -> None:
     dotenv.load_dotenv('.env.local', override=True)
 
     # Create the Application and pass it your bot's token.
-    application = Application.builder().concurrent_updates(True).token(os.getenv('TG_TOKEN')).build()
+    application = Application.builder().concurrent_updates(True).token(os.getenv('TG_TOKEN', '')).build()
 
     application.add_handler(MessageHandler(filters.ALL, count_message), group=0)
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_message), group=1)

@@ -26,15 +26,14 @@ from telegram.ext import (
     filters,
 )
 
-
-GREET_DEBOUNCE_TERM = 120
+GREET_DEBOUNCE_MESSAGE_COUNT = 10
 
 
 class State:
-    last_dt: datetime
+    message_count: int
 
     def __init__(self):
-        self.last_dt = datetime.now()
+        self.message_count = 0
 
 
 state = State()
@@ -57,14 +56,17 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
+async def count_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    state.message_count += 1
+
 
 async def greet_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    now = datetime.now()
+    logger.info("message_count=%d <= GREET_DEBOUNCE_MESSAGE_COUNT=%d", state.message_count, GREET_DEBOUNCE_MESSAGE_COUNT)
 
-    if (now - state.last_dt).total_seconds() < 60:
+    if state.message_count <= GREET_DEBOUNCE_MESSAGE_COUNT:
         return
 
-    state.last_dt = now
+    state.message_count = 0
 
     await update.effective_chat.send_message(
         text=WELCOME_MESSAGE_FORMAT,
@@ -75,12 +77,13 @@ async def greet_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 def main() -> None:
     """Start the bot."""
-    dotenv.load_dotenv('.env.local')
+    dotenv.load_dotenv('.env.local', override=True)
 
     # Create the Application and pass it your bot's token.
-    application = Application.builder().token(os.getenv('TG_TOKEN')).build()
+    application = Application.builder().concurrent_updates(True).token(os.getenv('TG_TOKEN')).build()
 
-    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_message))
+    application.add_handler(MessageHandler(filters.ALL, count_message), group=0)
+    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_message), group=1)
 
     # Run the bot until the user presses Ctrl-C
     # We pass 'allowed_updates' handle *all* updates including `chat_member` updates

@@ -57,6 +57,7 @@ logger = logging.getLogger(__name__)
 
 
 async def count_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.info("message_count=%d <= GREET_DEBOUNCE_MESSAGE_COUNT=%d", state.message_count, GREET_DEBOUNCE_MESSAGE_COUNT)
     state.message_count += 1
 
 
@@ -86,9 +87,9 @@ def main() -> None:
     dotenv.load_dotenv('.env.local', override=True)
 
     # Create the Application and pass it your bot's token.
-    application = Application.builder().concurrent_updates(True).token(os.getenv('TG_TOKEN', '')).build()
+    application = Application.builder().token(os.getenv('TG_TOKEN', '')).build()
 
-    application.add_handler(MessageHandler(filters.ALL, count_message), group=0)
+    application.add_handler(MessageHandler(filters.TEXT | filters.PHOTO, count_message), group=0)
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_message), group=1)
 
     # Run the bot until the user presses Ctrl-C

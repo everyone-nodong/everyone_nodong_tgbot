@@ -27,7 +27,7 @@ from telegram.ext import (
 )
 
 
-GREET_DEBOUNCE_TERM = 60
+GREET_DEBOUNCE_TERM = 120
 
 
 class State:
@@ -39,16 +39,8 @@ class State:
 
 state = State()
 
-WELCOME_MULTIPLE_USER_PREFIX_FORMAT = """
-안녕하세요!
-""".strip()
-
-WELCOME_SINGLE_USER_PREFIX_FORMAT = """
-안녕하세요 [{member_name}](tg://user?id={member_id}) 님,
-""".strip()
-
 WELCOME_MESSAGE_FORMAT = """
-전국민주일반노조 누구나노조지회 채팅방에 오신것을 환영합니다!
+안녕하세요! 전국민주일반노조 누구나노조지회 채팅방에 오신것을 환영합니다!
 조합비 납부 방법, 계좌번호 등 자주 묻는 질문은 홈페이지를 참조해주세요.
 https://everyone-nodong.github.io/
 최근 소식은 채팅방 상단 고정된 메시지에서 확인하실 수 있습니다.
@@ -74,14 +66,8 @@ async def greet_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     state.last_dt = now
 
-    prefix = WELCOME_MULTIPLE_USER_PREFIX_FORMAT
-
-    if len(update.message.new_chat_members) == 1:
-        user = update.message.new_chat_members[0]
-        prefix = WELCOME_SINGLE_USER_PREFIX_FORMAT.format(member_name=user.name, member_id=user.id)
-
     await update.effective_chat.send_message(
-        text=prefix + ' ' + WELCOME_MESSAGE_FORMAT,
+        text=WELCOME_MESSAGE_FORMAT,
         parse_mode=ParseMode.MARKDOWN,
         disable_notification=True,
     )

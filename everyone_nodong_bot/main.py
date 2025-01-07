@@ -48,7 +48,10 @@ WELCOME_SINGLE_USER_PREFIX_FORMAT = """
 """.strip()
 
 WELCOME_MESSAGE_FORMAT = """
-전국민주일반노조 채팅방에 오신것을 환영합니다!\n조합비 납부 방법, 계좌번호 등 자주 묻는 질문은 홈페이지 참조 바랍니다.\nhttps://everyone-nodong.github.io/\n최근 소식은 채팅방 상단 고정된 메시지에서 확인하실 수 있습니다.
+전국민주일반노조 누구나노조지회 채팅방에 오신것을 환영합니다!
+조합비 납부 방법, 계좌번호 등 자주 묻는 질문은 홈페이지를 참조해주세요.
+https://everyone-nodong.github.io/
+최근 소식은 채팅방 상단 고정된 메시지에서 확인하실 수 있습니다.
 """.strip()
 
 # Enable logging

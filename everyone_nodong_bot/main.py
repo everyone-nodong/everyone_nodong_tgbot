@@ -21,6 +21,7 @@ from telegram.ext import (
     Application,
     ContextTypes,
     MessageHandler,
+    CommandHandler,
     filters,
 )
 
@@ -82,6 +83,14 @@ async def greet_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     )
 
 
+async def greet_message_force(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(
+        text=WELCOME_MESSAGE_FORMAT,
+        parse_mode=ParseMode.MARKDOWN,
+        disable_notification=True,
+    )
+
+
 def main() -> None:
     """Start the bot."""
     dotenv.load_dotenv('.env.local', override=True)
@@ -91,6 +100,8 @@ def main() -> None:
 
     application.add_handler(MessageHandler(filters.TEXT | filters.PHOTO | filters.CHAT, count_message), group=0)
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_message), group=1)
+
+    application.add_handler(CommandHandler("about", greet_message_force), group=2)
 
     # Run the bot until the user presses Ctrl-C
     # We pass 'allowed_updates' handle *all* updates including `chat_member` updates

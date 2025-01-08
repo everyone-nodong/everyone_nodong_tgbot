@@ -24,7 +24,7 @@ from telegram.ext import (
     filters,
 )
 
-GREET_DEBOUNCE_MESSAGE_COUNT = 10
+GREET_DEBOUNCE_MESSAGE_COUNT = 6
 
 
 class State:
@@ -89,7 +89,7 @@ def main() -> None:
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(os.getenv('TG_TOKEN', '')).build()
 
-    application.add_handler(MessageHandler(filters.TEXT | filters.PHOTO, count_message), group=0)
+    application.add_handler(MessageHandler(filters., count_message), group=0)
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_message), group=1)
 
     # Run the bot until the user presses Ctrl-C

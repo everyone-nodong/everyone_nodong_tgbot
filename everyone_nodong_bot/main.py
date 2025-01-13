@@ -13,6 +13,7 @@ bot.
 
 import logging
 import os
+from datetime import datetime, timedelta
 
 import dotenv
 from telegram import Update, Message
@@ -26,15 +27,18 @@ from telegram.ext import (
 )
 
 GREET_DEBOUNCE_MESSAGE_COUNT = 6
+FIGHT_DEBOUNCE_SECONDS = 30.0
 
 
 class State:
     message_count: int
     last_message: Message | None
+    last_fight_message_dt: datetime
 
     def __init__(self):
         self.message_count = GREET_DEBOUNCE_MESSAGE_COUNT+1
         self.last_message = None
+        self.last_fight_message_dt = datetime.now() - timedelta(seconds=FIGHT_DEBOUNCE_SECONDS)
 
 
 state = State()
@@ -58,8 +62,14 @@ logger = logging.getLogger(__name__)
 
 
 async def count_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    now = datetime.now()
+
     logger.info("message_count=%d <= GREET_DEBOUNCE_MESSAGE_COUNT=%d", state.message_count, GREET_DEBOUNCE_MESSAGE_COUNT)
     state.message_count += 1
+
+    if "투쟁!" in update.message.text and (now-state.last_fight_message_dt).total_seconds() > FIGHT_DEBOUNCE_SECONDS:
+        await update.effective_chat.send_message("투쟁!!!! (ง'̀-'́)ง")
+        state.last_fight_message_dt = now
 
 
 async def greet_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

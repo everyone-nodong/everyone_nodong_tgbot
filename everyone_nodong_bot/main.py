@@ -16,7 +16,7 @@ import os
 from datetime import datetime, timedelta
 
 import dotenv
-from telegram import Update, Message
+from telegram import LinkPreviewOptions, Update, Message
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
@@ -48,6 +48,11 @@ WELCOME_MESSAGE_FORMAT = """
 조합비 납부 방법, 계좌번호 등 자주 묻는 질문은 홈페이지를 참조해주세요.
 https://everyone-nodong.github.io/
 최근 소식은 채팅방 상단 고정된 메시지에서 확인하실 수 있습니다.
+""".strip()
+
+RULES_MESSAGE_FORMAT = """
+우리 모두가 지켜야 할 민주노총 평등수칙입니다.
+평등수칙에 대한 자세한 내용은 <a href="https://nodong.org/data_paper/7814605">민주노총 평등수칙 해설서</a>를 참조해주세요.
 """.strip()
 
 # Enable logging
@@ -100,6 +105,19 @@ async def greet_message_force(update: Update, context: ContextTypes.DEFAULT_TYPE
         disable_notification=True,
     )
 
+async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(
+        text=RULES_MESSAGE_FORMAT,
+        parse_mode=ParseMode.HTML,
+        disable_notification=True,
+        link_preview_options=LinkPreviewOptions(
+            url="https://everyone-nodong.github.io/assets/rule-of-equality.jpg",
+            prefer_large_media=True,
+            show_above_text=True,
+        )
+    )
+
+
 
 def main() -> None:
     """Start the bot."""
@@ -112,6 +130,7 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_message), group=1)
 
     application.add_handler(CommandHandler("about", greet_message_force), group=2)
+    application.add_handler(CommandHandler("rules", rules), group=2)
 
     # Run the bot until the user presses Ctrl-C
     # We pass 'allowed_updates' handle *all* updates including `chat_member` updates

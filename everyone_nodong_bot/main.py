@@ -26,8 +26,8 @@ from telegram.ext import (
     filters,
 )
 
-GREET_DEBOUNCE_MESSAGE_COUNT = 6
-FIGHT_DEBOUNCE_SECONDS = 30.0
+GREET_DEBOUNCE_MESSAGE_COUNT = 3
+FIGHT_DEBOUNCE_SECONDS = 10.0
 
 
 class State:

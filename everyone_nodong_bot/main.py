@@ -106,6 +106,9 @@ async def greet_message_force(update: Update, context: ContextTypes.DEFAULT_TYPE
     )
 
 async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not update.effective_chat:
+        return
+
     await update.message.reply_text(
         text=RULES_MESSAGE_FORMAT,
         parse_mode=ParseMode.HTML,
@@ -130,7 +133,7 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_message), group=1)
 
     application.add_handler(CommandHandler("about", greet_message_force), group=2)
-    application.add_handler(CommandHandler("rules", rules), group=2)
+    application.add_handler(CommandHandler("rules", rules), group=3)
 
     # Run the bot until the user presses Ctrl-C
     # We pass 'allowed_updates' handle *all* updates including `chat_member` updates

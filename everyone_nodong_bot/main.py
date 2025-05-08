@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 
 import dotenv
 from telegram import LinkPreviewOptions, Update, Message
+from telegram.error import BadRequest
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
@@ -72,7 +73,7 @@ async def count_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     logger.info("message_count=%d <= GREET_DEBOUNCE_MESSAGE_COUNT=%d", state.message_count, GREET_DEBOUNCE_MESSAGE_COUNT)
     state.message_count += 1
 
-    if "투쟁!" in (update.message.text or "") and (now-state.last_fight_message_dt).total_seconds() > FIGHT_DEBOUNCE_SECONDS:
+    if "투쟁!" in update.message.text and (now-state.last_fight_message_dt).total_seconds() > FIGHT_DEBOUNCE_SECONDS:
         await update.effective_chat.send_message("투쟁!!!! (ง'̀-'́)ง")
         state.last_fight_message_dt = now
 
@@ -89,7 +90,10 @@ async def greet_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return
 
     if state.last_message:
-        await state.last_message.delete()
+        try:
+            await state.last_message.delete()
+        except BadRequest:
+            pass
 
     state.last_message = await update.effective_chat.send_message(
         text=WELCOME_MESSAGE_FORMAT,
@@ -106,9 +110,6 @@ async def greet_message_force(update: Update, context: ContextTypes.DEFAULT_TYPE
     )
 
 async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if not update.effective_chat:
-        return
-
     await update.message.reply_text(
         text=RULES_MESSAGE_FORMAT,
         parse_mode=ParseMode.HTML,
@@ -133,7 +134,7 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_message), group=1)
 
     application.add_handler(CommandHandler("about", greet_message_force), group=2)
-    application.add_handler(CommandHandler("rules", rules), group=3)
+    application.add_handler(CommandHandler("rules", rules), group=2)
 
     # Run the bot until the user presses Ctrl-C
     # We pass 'allowed_updates' handle *all* updates including `chat_member` updates

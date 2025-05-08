@@ -72,7 +72,7 @@ async def count_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     logger.info("message_count=%d <= GREET_DEBOUNCE_MESSAGE_COUNT=%d", state.message_count, GREET_DEBOUNCE_MESSAGE_COUNT)
     state.message_count += 1
 
-    if "투쟁!" in update.message.text and (now-state.last_fight_message_dt).total_seconds() > FIGHT_DEBOUNCE_SECONDS:
+    if "투쟁!" in (update.message.text or "") and (now-state.last_fight_message_dt).total_seconds() > FIGHT_DEBOUNCE_SECONDS:
         await update.effective_chat.send_message("투쟁!!!! (ง'̀-'́)ง")
         state.last_fight_message_dt = now
 

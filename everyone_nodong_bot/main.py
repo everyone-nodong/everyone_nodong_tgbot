@@ -1,16 +1,4 @@
 #!/usr/bin/env python
-# pylint: disable=unused-argument
-# This program is dedicated to the public domain under the CC0 license.
-
-"""
-Simple Bot to handle '(my_)chat_member' updates.
-Greets new users & keeps track of which chats the bot is in.
-
-Usage:
-Press Ctrl-C on the command line or send a signal to the process to stop the
-bot.
-"""
-
 import logging
 import os
 from datetime import datetime

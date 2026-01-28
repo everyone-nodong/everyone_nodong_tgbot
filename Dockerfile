@@ -1,15 +1,15 @@
 FROM python:3.13
 
-RUN curl -sSL https://install.python-poetry.org | python -
+RUN pip install uv==0.9.27
 
 ENV PATH="/root/.local/bin:$PATH"
 
-COPY poetry.lock pyproject.toml /app/
+COPY uv.lock pyproject.toml /app/
 
 WORKDIR /app/
 
-RUN poetry install
+RUN uv sync
 
 COPY everyone_nodong_bot /app/everyone_nodong_bot/
 
-ENTRYPOINT ["poetry", "run", "python", "-m", "everyone_nodong_bot.main"]
+ENTRYPOINT ["uv", "run", "--no-sync", "python", "-m", "everyone_nodong_bot.main"]

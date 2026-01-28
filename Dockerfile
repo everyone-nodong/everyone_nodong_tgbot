@@ -12,4 +12,5 @@ RUN uv sync
 
 COPY everyone_nodong_bot /app/everyone_nodong_bot/
 
-ENTRYPOINT ["uv", "run", "--no-sync", "python", "-m", "everyone_nodong_bot.main"]
+ENTRYPOINT ["uv", "run", "--no-sync"]
+CMD ["python", "-m", "everyone_nodong_bot.main"]
